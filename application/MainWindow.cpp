@@ -189,7 +189,7 @@ public:
     TranslatedAction actionViewSelectedMCFolder;
     TranslatedAction actionDeleteInstance;
     TranslatedAction actionConfig_Folder;
-    TranslatedAction actionCAT;
+    TranslatedAction actionPMK;
     TranslatedAction actionCopyInstance;
     TranslatedAction actionLaunchInstanceOffline;
     TranslatedAction actionScreenshots;
@@ -372,15 +372,15 @@ public:
         all_actions.append(&actionPatreon);
         mainToolBar->addAction(actionPatreon);
 
-        actionCAT = TranslatedAction(MainWindow);
-        actionCAT->setObjectName(QStringLiteral("actionCAT"));
-        actionCAT->setCheckable(true);
-        actionCAT->setIcon(MMC->getThemedIcon("cat"));
-        actionCAT.setTextId(QT_TRANSLATE_NOOP("MainWindow", "Meow"));
-        actionCAT.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "It's a fluffy kitty :3"));
-        actionCAT->setPriority(QAction::LowPriority);
-        all_actions.append(&actionCAT);
-        mainToolBar->addAction(actionCAT);
+        actionPMK = TranslatedAction(MainWindow);
+        actionPMK->setObjectName(QStringLiteral("actionPMK"));
+        actionPMK->setCheckable(true);
+        actionPMK->setIcon(MMC->getThemedIcon("cat"));
+        actionPMK.setTextId(QT_TRANSLATE_NOOP("MainWindow", "PumpKins"));
+        actionPMK.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Do you want a pumpmykins ?"));
+        actionPMK->setPriority(QAction::LowPriority);
+        all_actions.append(&actionPMK);
+        mainToolBar->addAction(actionPMK);
 
         // profile menu and its actions
         actionManageAccounts = TranslatedAction(MainWindow);
@@ -685,11 +685,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new MainWindow
     }
     // The cat background
     {
-        bool cat_enable = MMC->settings()->get("TheCat").toBool();
-        ui->actionCAT->setChecked(cat_enable);
+        bool pmk_enable = MMC->settings()->get("ThePumpKins").toBool();
+        ui->actionPMK->setChecked(pmk_enable);
         // NOTE: calling the operator like that is an ugly hack to appease ancient gcc...
-        connect(ui->actionCAT.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
-        setCatBackground(cat_enable);
+        connect(ui->actionPMK.operator->(), SIGNAL(toggled(bool)), SLOT(onCatToggled(bool)));
+        setPMKBackground(pmk_enable);
     }
     // start instance when double-clicked
     connect(view, &GroupView::activated, this, &MainWindow::instanceActivated);
@@ -1237,8 +1237,8 @@ void MainWindow::downloadUpdates(GoUpdate::Status status)
 
 void MainWindow::onCatToggled(bool state)
 {
-    setCatBackground(state);
-    MMC->settings()->set("TheCat", state);
+    setPMKBackground(state);
+    MMC->settings()->set("ThePumpKins", state);
 }
 
 namespace {
@@ -1251,14 +1251,14 @@ T non_stupid_abs(T in)
 }
 }
 
-void MainWindow::setCatBackground(bool enabled)
+void MainWindow::setPMKBackground(bool enabled)
 {
     if (enabled)
     {
         QDateTime now = QDateTime::currentDateTime();
         QDateTime xmas(QDate(now.date().year(), 12, 25), QTime(0, 0));
         ;
-        QString cat = (non_stupid_abs(now.daysTo(xmas)) <= 4) ? "catmas" : "kitteh";
+        QString cat = (non_stupid_abs(now.daysTo(xmas)) <= 4) ? "pumpmykins" : "pumpmykins";
         view->setStyleSheet(QString(R"(
 GroupView
 {

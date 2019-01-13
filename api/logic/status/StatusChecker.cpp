@@ -43,7 +43,7 @@ void StatusChecker::reloadStatus()
     // qDebug() << "Reloading status.";
 
     NetJob* job = new NetJob("Status JSON");
-    job->addNetAction(Net::Download::makeByteArray(URLConstants::MOJANG_STATUS_URL, &dataSink));
+    job->addNetAction(Net::Download::makeByteArray(URLConstants::PMK_STATUS_URL, &dataSink));
     QObject::connect(job, &NetJob::succeeded, this, &StatusChecker::statusDownloadFinished);
     QObject::connect(job, &NetJob::failed, this, &StatusChecker::statusDownloadFailed);
     m_statusNetJob.reset(job);

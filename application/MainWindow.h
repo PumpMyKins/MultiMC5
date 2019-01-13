@@ -184,7 +184,7 @@ private slots:
 private:
     void addInstance(QString url = QString());
     void activateInstance(InstancePtr instance);
-    void setCatBackground(bool enabled);
+    void setPMKBackground(bool enabled);
     void updateInstanceToolIcon(QString new_icon);
     void setSelectedInstanceById(const QString &id);
 

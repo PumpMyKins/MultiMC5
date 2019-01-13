@@ -24,7 +24,7 @@ const QString RESOURCE_BASE("https://resources.download.minecraft.net/");
 const QString LIBRARY_BASE("https://libraries.minecraft.net/");
 const QString SKINS_BASE("https://crafatar.com/skins/");
 const QString AUTH_BASE("https://authserver.mojang.com/");
-const QString MOJANG_STATUS_URL("https://status.mojang.com/check");
+const QString PMK_STATUS_URL("http://resources.pumpmykins.eu/pmmultimc_v1/check.php");
 const QString IMGUR_BASE_URL("https://api.imgur.com/3/");
 const QString FMLLIBS_OUR_BASE_URL("https://files.multimc.org/fmllibs/");
 const QString FMLLIBS_FORGE_BASE_URL("https://files.minecraftforge.net/fmllibs/");
