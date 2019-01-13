@@ -34,10 +34,8 @@
 
 #include "widgets/PageContainer.h"
 #include <pages/modplatform/VanillaPage.h>
-#include <pages/modplatform/FTBPage.h>
-#include <pages/modplatform/TwitchPage.h>
 #include <pages/modplatform/ImportPage.h>
-#include <pages/modplatform/TechnicPage.h>
+#include <pages/modplatform/PMPacksPage.h>
 
 NewInstanceDialog::NewInstanceDialog(const QString & initialGroup, const QString & url, QWidget *parent)
     : QDialog(parent), ui(new Ui::NewInstanceDialog)
@@ -121,11 +119,9 @@ QList<BasePage *> NewInstanceDialog::getPages()
     importPage = new ImportPage(this);
     return
     {
+        new PMPacksPage(this),
         new VanillaPage(this),
-        new FTBPage(this),
-        importPage,
-        new TwitchPage(this),
-        new TechnicPage(this)
+        importPage
     };
 }
 
