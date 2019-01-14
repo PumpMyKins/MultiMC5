@@ -1,65 +1,93 @@
 #include "PMPacksPage.h"
 #include "ui_PMPacksPage.h"
 
+#include <QInputDialog>
+
 #include "MultiMC.h"
+#include "dialogs/CustomMessageBox.h"
+#include "dialogs/NewInstanceDialog.h"
+#include "modplatform/pmp/PmpPackFetchTask.h"
+#include "modplatform/pmp/PmpPackInstallTask.h"
+#include "modplatform/pmp/PmpPrivatePackManager.h"
+#include "PmpListModel.h"
 
-#include <meta/Index.h>
-#include <meta/VersionList.h>
-#include <dialogs/NewInstanceDialog.h>
-#include <Filter.h>
-#include <Env.h>
-#include <InstanceCreationTask.h>
-#include <QTabBar>
-
-PMPacksPage::PMPacksPage(NewInstanceDialog *dialog, QWidget *parent)
+PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
     : QWidget(parent), dialog(dialog), ui(new Ui::PMPacksPage)
 {
+    pmpFetchTask.reset(new PmpPackFetchTask());
+    pmpPrivatePacks.reset(new PmpPrivatePackManager());
+
     ui->setupUi(this);
-    ui->tabWidget->tabBar()->hide();
-    connect(ui->versionList, &VersionSelectWidget::selectedVersionChanged, this, &PMPacksPage::setSelectedVersion);
-    filterChanged();
-    connect(ui->alphaFilter, &QCheckBox::stateChanged, this, &PMPacksPage::filterChanged);
-    connect(ui->betaFilter, &QCheckBox::stateChanged, this, &PMPacksPage::filterChanged);
-    connect(ui->snapshotFilter, &QCheckBox::stateChanged, this, &PMPacksPage::filterChanged);
-    connect(ui->oldSnapshotFilter, &QCheckBox::stateChanged, this, &PMPacksPage::filterChanged);
-    connect(ui->releaseFilter, &QCheckBox::stateChanged, this, &PMPacksPage::filterChanged);
-    connect(ui->refreshBtn, &QPushButton::clicked, this, &PMPacksPage::refresh);
-}
 
-void PMPacksPage::openedImpl()
-{
-    if(!initialized)
     {
-        auto vlist = ENV.metadataIndex()->get("net.minecraft");
-        ui->versionList->initialize(vlist.get());
-        initialized = true;
+        publicFilterModel = new PmpFilterModel(this);
+        publicListModel = new PmpListModel(this);
+        publicFilterModel->setSourceModel(publicListModel);
+
+        ui->publicPackList->setModel(publicFilterModel);
+        ui->publicPackList->setSortingEnabled(true);
+        ui->publicPackList->header()->hide();
+        ui->publicPackList->setIndentation(0);
+        ui->publicPackList->setIconSize(QSize(42, 42));
+
+        for(int i = 0; i < publicFilterModel->getAvailableSortings().size(); i++)
+        {
+            ui->sortByBox->addItem(publicFilterModel->getAvailableSortings().keys().at(i));
+        }
+
+        ui->sortByBox->setCurrentText(publicFilterModel->translateCurrentSorting());
     }
-    else
+
     {
-        suggestCurrent();
+        thirdPartyFilterModel = new PmpFilterModel(this);
+        thirdPartyModel = new PmpListModel(this);
+        thirdPartyFilterModel->setSourceModel(thirdPartyModel);
+
+        ui->thirdPartyPackList->setModel(thirdPartyFilterModel);
+        ui->thirdPartyPackList->setSortingEnabled(true);
+        ui->thirdPartyPackList->header()->hide();
+        ui->thirdPartyPackList->setIndentation(0);
+        ui->thirdPartyPackList->setIconSize(QSize(42, 42));
+
+        thirdPartyFilterModel->setSorting(publicFilterModel->getCurrentSorting());
     }
-}
 
-void PMPacksPage::refresh()
-{
-    ui->versionList->loadList();
-}
+    {
+        privateFilterModel = new PmpFilterModel(this);
+        privateListModel = new PmpListModel(this);
+        privateFilterModel->setSourceModel(privateListModel);
 
-void PMPacksPage::filterChanged()
-{
-    QStringList out;
-    if(ui->alphaFilter->isChecked())
-        out << "(old_alpha)";
-    if(ui->betaFilter->isChecked())
-        out << "(old_beta)";
-    if(ui->snapshotFilter->isChecked())
-        out << "(snapshot)";
-    if(ui->oldSnapshotFilter->isChecked())
-        out << "(old_snapshot)";
-    if(ui->releaseFilter->isChecked())
-        out << "(release)";
-    auto regexp = out.join('|');
-    ui->versionList->setFilter(BaseVersionList::TypeRole, new RegexpFilter(regexp, false));
+        ui->privatePackList->setModel(privateFilterModel);
+        ui->privatePackList->setSortingEnabled(true);
+        ui->privatePackList->header()->hide();
+        ui->privatePackList->setIndentation(0);
+        ui->privatePackList->setIconSize(QSize(42, 42));
+
+        privateFilterModel->setSorting(publicFilterModel->getCurrentSorting());
+    }
+
+    ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
+
+    connect(ui->sortByBox, &QComboBox::currentTextChanged, this, &PMPacksPage::onSortingSelectionChanged);
+    connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &PMPacksPage::onVersionSelectionItemChanged);
+
+    connect(ui->publicPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onPublicPackSelectionChanged);
+    connect(ui->thirdPartyPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onThirdPartyPackSelectionChanged);
+    connect(ui->privatePackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onPrivatePackSelectionChanged);
+
+    connect(ui->addPackBtn, &QPushButton::pressed, this, &PMPacksPage::onAddPackClicked);
+    connect(ui->removePackBtn, &QPushButton::pressed, this, &PMPacksPage::onRemovePackClicked);
+
+    connect(ui->tabWidget, &QTabWidget::currentChanged, this, &PMPacksPage::onTabChanged);
+
+    // ui->modpackInfo->setOpenExternalLinks(true);
+
+    ui->publicPackList->selectionModel()->reset();
+    ui->thirdPartyPackList->selectionModel()->reset();
+    ui->privatePackList->selectionModel()->reset();
+
+    onTabChanged(ui->tabWidget->currentIndex());
 }
 
 PMPacksPage::~PMPacksPage()
@@ -72,21 +100,265 @@ bool PMPacksPage::shouldDisplay() const
     return true;
 }
 
-BaseVersionPtr PMPacksPage::selectedVersion() const
+void PMPacksPage::openedImpl()
 {
-    return m_selectedVersion;
+    if(!initialized)
+    {
+        connect(pmpFetchTask.get(), &PmpPackFetchTask::finished, this, &PMPacksPage::pmpPackDataDownloadSuccessfully);
+        connect(pmpFetchTask.get(), &PmpPackFetchTask::failed, this, &PMPacksPage::pmpPackDataDownloadFailed);
+
+        connect(pmpFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFinished, this, &PMPacksPage::pmpPrivatePackDataDownloadSuccessfully);
+        connect(pmpFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFailed, this, &PMPacksPage::pmpPrivatePackDataDownloadFailed);
+
+        pmpFetchTask->fetch();
+        pmpPrivatePacks->load();
+        pmpFetchTask->fetchPrivate(pmpPrivatePacks->getCurrentPackCodes().toList());
+        initialized = true;
+    }
+    suggestCurrent();
 }
 
 void PMPacksPage::suggestCurrent()
 {
-    if(m_selectedVersion && isOpened)
+    if(isOpened)
     {
-        dialog->setSuggestedPack(m_selectedVersion->descriptor(), new InstanceCreationTask(m_selectedVersion));
+        if(!selected.broken)
+        {
+            dialog->setSuggestedPack(selected.name, new PmpPackInstallTask(selected, selectedVersion));
+            QString editedLogoName;
+            if(selected.logo.toLower().startsWith("ftb"))
+            {
+                editedLogoName = selected.logo;
+            }
+            else
+            {
+                editedLogoName = "ftb_" + selected.logo;
+            }
+
+            editedLogoName = editedLogoName.left(editedLogoName.lastIndexOf(".png"));
+
+            if(selected.type == PmpPackType::Public)
+            {
+                publicListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
+                {
+                    dialog->setSuggestedIconFromFile(logo, editedLogoName);
+                });
+            }
+            else if (selected.type == PmpPackType::ThirdParty)
+            {
+                thirdPartyModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
+                {
+                    dialog->setSuggestedIconFromFile(logo, editedLogoName);
+                });
+            }
+            else if (selected.type == PmpPackType::Private)
+            {
+                privateListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
+                {
+                    dialog->setSuggestedIconFromFile(logo, editedLogoName);
+                });
+            }
+        }
+        else
+        {
+            dialog->setSuggestedPack();
+        }
     }
 }
 
-void PMPacksPage::setSelectedVersion(BaseVersionPtr version)
+void PMPacksPage::pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks)
 {
-    m_selectedVersion = version;
+    publicListModel->fill(publicPacks);
+    thirdPartyModel->fill(thirdPartyPacks);
+}
+
+void PMPacksPage::pmpPackDataDownloadFailed(QString reason)
+{
+    //TODO: Display the error
+}
+
+void PMPacksPage::pmpPrivatePackDataDownloadSuccessfully(PmpModpack pack)
+{
+    privateListModel->addPack(pack);
+}
+
+void PMPacksPage::pmpPrivatePackDataDownloadFailed(QString reason, QString packCode)
+{
+    auto reply = QMessageBox::question(
+        this,
+        tr("FTB private packs"),
+        tr("Failed to download pack information for code %1.\nShould it be removed now?").arg(packCode)
+    );
+    if(reply == QMessageBox::Yes)
+    {
+        pmpPrivatePacks->remove(packCode);
+    }
+}
+
+void PMPacksPage::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
+{
+    if(!now.isValid())
+    {
+        onPackSelectionChanged();
+        return;
+    }
+    PmpModpack selectedPack = publicFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
+    onPackSelectionChanged(&selectedPack);
+}
+
+void PMPacksPage::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
+{
+    if(!now.isValid())
+    {
+        onPackSelectionChanged();
+        return;
+    }
+    PmpModpack selectedPack = thirdPartyFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
+    onPackSelectionChanged(&selectedPack);
+}
+
+void PMPacksPage::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex prev)
+{
+    if(!now.isValid())
+    {
+        onPackSelectionChanged();
+        return;
+    }
+    PmpModpack selectedPack = privateFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
+    onPackSelectionChanged(&selectedPack);
+}
+
+void PMPacksPage::onPackSelectionChanged(PmpModpack* pack)
+{
+    ui->versionSelectionBox->clear();
+    if(pack)
+    {
+        currentModpackInfo->setHtml("Pack by <b>" + pack->author + "</b>" +
+                                    "<br>Minecraft " + pack->mcVersion + "<br>" + "<br>" + pack->description + "<ul><li>" + pack->mods.replace(";", "</li><li>")
+                                    + "</li></ul>");
+        bool currentAdded = false;
+
+        for(int i = 0; i < pack->oldVersions.size(); i++)
+        {
+            if(pack->currentVersion == pack->oldVersions.at(i))
+            {
+                currentAdded = true;
+            }
+            ui->versionSelectionBox->addItem(pack->oldVersions.at(i));
+        }
+
+        if(!currentAdded)
+        {
+            ui->versionSelectionBox->addItem(pack->currentVersion);
+        }
+        selected = *pack;
+    }
+    else
+    {
+        currentModpackInfo->setHtml("");
+        ui->versionSelectionBox->clear();
+        if(isOpened)
+        {
+            dialog->setSuggestedPack();
+        }
+        return;
+    }
     suggestCurrent();
+}
+
+void PMPacksPage::onVersionSelectionItemChanged(QString data)
+{
+    if(data.isNull() || data.isEmpty())
+    {
+        selectedVersion = "";
+        return;
+    }
+
+    selectedVersion = data;
+    suggestCurrent();
+}
+
+void PMPacksPage::onSortingSelectionChanged(QString data)
+{
+    PmpFilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
+    publicFilterModel->setSorting(toSet);
+    thirdPartyFilterModel->setSorting(toSet);
+    privateFilterModel->setSorting(toSet);
+}
+
+void PMPacksPage::onTabChanged(int tab)
+{
+    if(tab == 1)
+    {
+        currentModel = thirdPartyFilterModel;
+        currentList = ui->thirdPartyPackList;
+        currentModpackInfo = ui->thirdPartyPackDescription;
+    }
+    else if(tab == 2)
+    {
+        currentModel = privateFilterModel;
+        currentList = ui->privatePackList;
+        currentModpackInfo = ui->privatePackDescription;
+    }
+    else
+    {
+        currentModel = publicFilterModel;
+        currentList = ui->publicPackList;
+        currentModpackInfo = ui->publicPackDescription;
+    }
+
+    currentList->selectionModel()->reset();
+    QModelIndex idx = currentList->currentIndex();
+    if(idx.isValid())
+    {
+        auto pack = currentModel->data(idx, Qt::UserRole).value<PmpModpack>();
+        onPackSelectionChanged(&pack);
+    }
+    else
+    {
+        onPackSelectionChanged();
+    }
+}
+
+void PMPacksPage::onAddPackClicked()
+{
+    bool ok;
+    QString text = QInputDialog::getText(
+        this,
+        tr("Add FTB pack"),
+        tr("Enter pack code:"),
+        QLineEdit::Normal,
+        QString(),
+        &ok
+    );
+    if(ok && !text.isEmpty())
+    {
+        pmpPrivatePacks->add(text);
+        pmpFetchTask->fetchPrivate({text});
+    }
+}
+
+void PMPacksPage::onRemovePackClicked()
+{
+    auto index = ui->privatePackList->currentIndex();
+    if(!index.isValid())
+    {
+        return;
+    }
+    auto row = index.row();
+    PmpModpack pack = privateListModel->at(row);
+    auto answer = QMessageBox::question(
+        this,
+        tr("Remove pack"),
+        tr("Are you sure you want to remove pack %1?").arg(pack.name),
+        QMessageBox::Yes | QMessageBox::No
+    );
+    if(answer != QMessageBox::Yes)
+    {
+        return;
+    }
+
+    pmpPrivatePacks->remove(pack.packCode);
+    privateListModel->remove(row);
+    onPackSelectionChanged();
 }

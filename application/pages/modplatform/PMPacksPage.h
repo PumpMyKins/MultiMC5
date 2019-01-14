@@ -16,60 +16,99 @@
 #pragma once
 
 #include <QWidget>
+#include <QTreeView>
+#include <QTextBrowser>
 
 #include "pages/BasePage.h"
 #include <MultiMC.h>
 #include "tasks/Task.h"
+#include "modplatform/pmp/PackHelpers.h"
+#include "modplatform/pmp/PmpPackFetchTask.h"
+#include "QObjectPtr.h"
 
 namespace Ui
 {
 class PMPacksPage;
 }
 
+class PmpListModel;
+class PmpFilterModel;
 class NewInstanceDialog;
+class PmpPrivatePackListModel;
+class PmpPrivatePackFilterModel;
+class PmpPrivatePackManager;
 
 class PMPacksPage : public QWidget, public BasePage
 {
     Q_OBJECT
 
 public:
-    explicit PMPacksPage(NewInstanceDialog *dialog, QWidget *parent = 0);
+    explicit PMPacksPage(NewInstanceDialog * dialog, QWidget *parent = 0);
     virtual ~PMPacksPage();
-    virtual QString displayName() const override
+    QString displayName() const override
     {
         return tr("PumpMyPacks");
     }
-    virtual QIcon icon() const override
+    QIcon icon() const override
     {
         return MMC->getThemedIcon("pmk");
     }
-    virtual QString id() const override
+    QString id() const override
     {
-        return "pmpacks";
+        return "pmk";
     }
-    virtual QString helpPage() const override
+    QString helpPage() const override
     {
-        return "Vanilla-platform";
+        return "FTB-platform";
     }
-    virtual bool shouldDisplay() const override;
+    bool shouldDisplay() const override;
     void openedImpl() override;
 
-    BaseVersionPtr selectedVersion() const;
-
-public slots:
-    void setSelectedVersion(BaseVersionPtr version);
+private:
+    void suggestCurrent();
+    void onPackSelectionChanged(PmpModpack *pack = nullptr);
 
 private slots:
-    void filterChanged();
+    void pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
+    void pmpPackDataDownloadFailed(QString reason);
+
+    void pmpPrivatePackDataDownloadSuccessfully(PmpModpack pack);
+    void pmpPrivatePackDataDownloadFailed(QString reason, QString packCode);
+
+    void onSortingSelectionChanged(QString data);
+    void onVersionSelectionItemChanged(QString data);
+
+    void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
+    void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);
+    void onPrivatePackSelectionChanged(QModelIndex first, QModelIndex second);
+
+    void onTabChanged(int tab);
+
+    void onAddPackClicked();
+    void onRemovePackClicked();
 
 private:
-    void refresh();
-    void suggestCurrent();
+    PmpFilterModel* currentModel = nullptr;
+    QTreeView* currentList = nullptr;
+    QTextBrowser* currentModpackInfo = nullptr;
 
-private:
     bool initialized = false;
-    NewInstanceDialog *dialog = nullptr;
+    PmpModpack selected;
+    QString selectedVersion;
+
+    PmpListModel* publicListModel = nullptr;
+    PmpFilterModel* publicFilterModel = nullptr;
+
+    PmpListModel *thirdPartyModel = nullptr;
+    PmpFilterModel *thirdPartyFilterModel = nullptr;
+
+    PmpListModel *privateListModel = nullptr;
+    PmpFilterModel *privateFilterModel = nullptr;
+
+    unique_qobject_ptr<PmpPackFetchTask> pmpFetchTask;
+    std::unique_ptr<PmpPrivatePackManager> pmpPrivatePacks;
+
+    NewInstanceDialog* dialog = nullptr;
+
     Ui::PMPacksPage *ui = nullptr;
-    bool m_versionSetByUser = false;
-    BaseVersionPtr m_selectedVersion;
 };
