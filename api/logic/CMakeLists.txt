@@ -419,16 +419,16 @@ set(META_SOURCES
     meta/Index.h
 )
 
-set(FTB_SOURCES
-    modplatform/ftb/FtbPackFetchTask.h
-    modplatform/ftb/FtbPackFetchTask.cpp
-    modplatform/ftb/FtbPackInstallTask.h
-    modplatform/ftb/FtbPackInstallTask.cpp
+set(PMP_SOURCES
+    modplatform/pmp/PmpPackFetchTask.h
+    modplatform/pmp/PmpPackFetchTask.cpp
+    modplatform/pmp/PmpPackInstallTask.h
+    modplatform/pmp/PmpPackInstallTask.cpp
 
-    modplatform/ftb/FtbPrivatePackManager.h
-    modplatform/ftb/FtbPrivatePackManager.cpp
+    modplatform/pmp/PmpPrivatePackManager.h
+    modplatform/pmp/PmpPrivatePackManager.cpp
 
-    modplatform/ftb/PackHelpers.h
+    modplatform/pmp/PackHelpers.h
 )
 
 set(FLAME_SOURCES
@@ -467,7 +467,7 @@ set(LOGIC_SOURCES
     ${TOOLS_SOURCES}
     ${META_SOURCES}
     ${ICONS_SOURCES}
-    ${FTB_SOURCES}
+    ${PMP_SOURCES}
     ${FLAME_SOURCES}
 )
 

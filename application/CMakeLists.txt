@@ -132,18 +132,20 @@ SET(MULTIMC_SOURCES
     # GUI - platform pages
     pages/modplatform/VanillaPage.cpp
     pages/modplatform/VanillaPage.h
-    pages/modplatform/FTBPage.cpp
-    pages/modplatform/FTBPage.h
-    pages/modplatform/FtbListModel.h
-    pages/modplatform/FtbListModel.cpp
-    pages/modplatform/TwitchPage.cpp
-    pages/modplatform/TwitchPage.h
-    pages/modplatform/TechnicPage.cpp
-    pages/modplatform/TechnicPage.h
+#    pages/modplatform/FTBPage.cpp
+#    pages/modplatform/FTBPage.h
+#    pages/modplatform/FtbListModel.h
+#    pages/modplatform/FtbListModel.cpp
+#    pages/modplatform/TwitchPage.cpp
+#    pages/modplatform/TwitchPage.h
+#    pages/modplatform/TechnicPage.cpp
+#    pages/modplatform/TechnicPage.h
     pages/modplatform/ImportPage.cpp
     pages/modplatform/ImportPage.h
     pages/modplatform/PMPacksPage.cpp
     pages/modplatform/PMPacksPage.h
+    pages/modplatform/PmpListModel.h
+    pages/modplatform/PmpListModel.cpp
 
     # GUI - dialogs
     dialogs/AboutDialog.cpp
@@ -254,9 +256,9 @@ SET(MULTIMC_UIS
 
     # Platform pages
     pages/modplatform/VanillaPage.ui
-    pages/modplatform/FTBPage.ui
-    pages/modplatform/TwitchPage.ui
-    pages/modplatform/TechnicPage.ui
+#    pages/modplatform/FTBPage.ui
+#    pages/modplatform/TwitchPage.ui
+#    pages/modplatform/TechnicPage.ui
     pages/modplatform/ImportPage.ui
     pages/modplatform/PMPacksPage.ui
 
