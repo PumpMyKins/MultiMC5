@@ -31,12 +31,12 @@ namespace Ui
 class FTBPage;
 }
 
-class FtbListModel;
-class FtbFilterModel;
+class PmpListModel;
+class PmpFilterModel;
 class NewInstanceDialog;
-class FtbPrivatePackListModel;
-class FtbPrivatePackFilterModel;
-class FtbPrivatePackManager;
+class PmpPrivatePackListModel;
+class PmpPrivatePackFilterModel;
+class PmpPrivatePackManager;
 
 class FTBPage : public QWidget, public BasePage
 {
@@ -66,13 +66,13 @@ public:
 
 private:
     void suggestCurrent();
-    void onPackSelectionChanged(FtbModpack *pack = nullptr);
+    void onPackSelectionChanged(PmpModpack *pack = nullptr);
 
 private slots:
-    void ftbPackDataDownloadSuccessfully(FtbModpackList publicPacks, FtbModpackList thirdPartyPacks);
+    void ftbPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
     void ftbPackDataDownloadFailed(QString reason);
 
-    void ftbPrivatePackDataDownloadSuccessfully(FtbModpack pack);
+    void ftbPrivatePackDataDownloadSuccessfully(PmpModpack pack);
     void ftbPrivatePackDataDownloadFailed(QString reason, QString packCode);
 
     void onSortingSelectionChanged(QString data);
@@ -88,25 +88,25 @@ private slots:
     void onRemovePackClicked();
 
 private:
-    FtbFilterModel* currentModel = nullptr;
+    PmpFilterModel* currentModel = nullptr;
     QTreeView* currentList = nullptr;
     QTextBrowser* currentModpackInfo = nullptr;
 
     bool initialized = false;
-    FtbModpack selected;
+    PmpModpack selected;
     QString selectedVersion;
 
-    FtbListModel* publicListModel = nullptr;
-    FtbFilterModel* publicFilterModel = nullptr;
+    PmpListModel* publicListModel = nullptr;
+    PmpFilterModel* publicFilterModel = nullptr;
 
-    FtbListModel *thirdPartyModel = nullptr;
-    FtbFilterModel *thirdPartyFilterModel = nullptr;
+    PmpListModel *thirdPartyModel = nullptr;
+    PmpFilterModel *thirdPartyFilterModel = nullptr;
 
-    FtbListModel *privateListModel = nullptr;
-    FtbFilterModel *privateFilterModel = nullptr;
+    PmpListModel *privateListModel = nullptr;
+    PmpFilterModel *privateFilterModel = nullptr;
 
-    unique_qobject_ptr<FtbPackFetchTask> ftbFetchTask;
-    std::unique_ptr<FtbPrivatePackManager> ftbPrivatePacks;
+    unique_qobject_ptr<PmpPackFetchTask> ftbFetchTask;
+    std::unique_ptr<PmpPrivatePackManager> ftbPrivatePacks;
 
     NewInstanceDialog* dialog = nullptr;
 

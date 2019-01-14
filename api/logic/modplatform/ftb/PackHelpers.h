@@ -6,14 +6,14 @@
 #include <QMetaType>
 
 //Header for structs etc...
-enum class FtbPackType
+enum class PmpPackType
 {
     Public,
     ThirdParty,
     Private
 };
 
-struct FtbModpack
+struct PmpModpack
 {
     QString name;
     QString description;
@@ -31,11 +31,11 @@ struct FtbModpack
     bool bugged = false;
     bool broken = false;
 
-    FtbPackType type;
+    PmpPackType type;
     QString packCode;
 };
 
 //We need it for the proxy model
-Q_DECLARE_METATYPE(FtbModpack)
+Q_DECLARE_METATYPE(PmpModpack)
 
-typedef QList<FtbModpack> FtbModpackList;
+typedef QList<PmpModpack> PmpModpackList;

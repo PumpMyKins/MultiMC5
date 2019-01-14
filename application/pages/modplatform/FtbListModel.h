@@ -11,14 +11,14 @@
 
 #include <functional>
 
-typedef QMap<QString, QIcon> FtbLogoMap;
+typedef QMap<QString, QIcon> PmpLogoMap;
 typedef std::function<void(QString)> LogoCallback;
 
-class FtbFilterModel : public QSortFilterProxyModel
+class PmpFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    FtbFilterModel(QObject* parent = Q_NULLPTR);
+    PmpFilterModel(QObject* parent = Q_NULLPTR);
     enum Sorting {
         ByName,
         ByGameVersion
@@ -38,18 +38,18 @@ private:
 
 };
 
-class FtbListModel : public QAbstractListModel
+class PmpListModel : public QAbstractListModel
 {
     Q_OBJECT
 private:
-    FtbModpackList modpacks;
+    PmpModpackList modpacks;
     QStringList m_failedLogos;
     QStringList m_loadingLogos;
-    FtbLogoMap m_logoMap;
+    PmpLogoMap m_logoMap;
     QMap<QString, LogoCallback> waitingCallbacks;
 
     void requestLogo(QString file);
-    QString translatePackType(FtbPackType type) const;
+    QString translatePackType(PmpPackType type) const;
 
 
 private slots:
@@ -57,18 +57,18 @@ private slots:
     void logoLoaded(QString logo, QIcon out);
 
 public:
-    FtbListModel(QObject *parent);
-    ~FtbListModel();
+    PmpListModel(QObject *parent);
+    ~PmpListModel();
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    void fill(FtbModpackList modpacks);
-    void addPack(FtbModpack modpack);
+    void fill(PmpModpackList modpacks);
+    void addPack(PmpModpack modpack);
     void clear();
     void remove(int row);
 
-    FtbModpack at(int row);
+    PmpModpack at(int row);
     void getLogo(const QString &logo, LogoCallback callback);
 };

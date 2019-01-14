@@ -5,10 +5,10 @@
 #include <QFile>
 #include "multimc_logic_export.h"
 
-class MULTIMC_LOGIC_EXPORT FtbPrivatePackManager
+class MULTIMC_LOGIC_EXPORT PmpPrivatePackManager
 {
 public:
-    ~FtbPrivatePackManager()
+    ~PmpPrivatePackManager()
     {
         save();
     }

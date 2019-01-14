@@ -14,8 +14,8 @@
 FTBPage::FTBPage(NewInstanceDialog* dialog, QWidget *parent)
     : QWidget(parent), dialog(dialog), ui(new Ui::FTBPage)
 {
-    ftbFetchTask.reset(new FtbPackFetchTask());
-    ftbPrivatePacks.reset(new FtbPrivatePackManager());
+    ftbFetchTask.reset(new PmpPackFetchTask());
+    ftbPrivatePacks.reset(new PmpPrivatePackManager());
 
     ui->setupUi(this);
 
@@ -104,11 +104,11 @@ void FTBPage::openedImpl()
 {
     if(!initialized)
     {
-        connect(ftbFetchTask.get(), &FtbPackFetchTask::finished, this, &FTBPage::ftbPackDataDownloadSuccessfully);
-        connect(ftbFetchTask.get(), &FtbPackFetchTask::failed, this, &FTBPage::ftbPackDataDownloadFailed);
+        connect(ftbFetchTask.get(), &PmpPackFetchTask::finished, this, &FTBPage::ftbPackDataDownloadSuccessfully);
+        connect(ftbFetchTask.get(), &PmpPackFetchTask::failed, this, &FTBPage::ftbPackDataDownloadFailed);
 
-        connect(ftbFetchTask.get(), &FtbPackFetchTask::privateFileDownloadFinished, this, &FTBPage::ftbPrivatePackDataDownloadSuccessfully);
-        connect(ftbFetchTask.get(), &FtbPackFetchTask::privateFileDownloadFailed, this, &FTBPage::ftbPrivatePackDataDownloadFailed);
+        connect(ftbFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFinished, this, &FTBPage::ftbPrivatePackDataDownloadSuccessfully);
+        connect(ftbFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFailed, this, &FTBPage::ftbPrivatePackDataDownloadFailed);
 
         ftbFetchTask->fetch();
         ftbPrivatePacks->load();
@@ -137,21 +137,21 @@ void FTBPage::suggestCurrent()
 
             editedLogoName = editedLogoName.left(editedLogoName.lastIndexOf(".png"));
 
-            if(selected.type == FtbPackType::Public)
+            if(selected.type == PmpPackType::Public)
             {
                 publicListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
                 {
                     dialog->setSuggestedIconFromFile(logo, editedLogoName);
                 });
             }
-            else if (selected.type == FtbPackType::ThirdParty)
+            else if (selected.type == PmpPackType::ThirdParty)
             {
                 thirdPartyModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
                 {
                     dialog->setSuggestedIconFromFile(logo, editedLogoName);
                 });
             }
-            else if (selected.type == FtbPackType::Private)
+            else if (selected.type == PmpPackType::Private)
             {
                 privateListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
                 {
@@ -166,7 +166,7 @@ void FTBPage::suggestCurrent()
     }
 }
 
-void FTBPage::ftbPackDataDownloadSuccessfully(FtbModpackList publicPacks, FtbModpackList thirdPartyPacks)
+void FTBPage::ftbPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks)
 {
     publicListModel->fill(publicPacks);
     thirdPartyModel->fill(thirdPartyPacks);
@@ -177,7 +177,7 @@ void FTBPage::ftbPackDataDownloadFailed(QString reason)
     //TODO: Display the error
 }
 
-void FTBPage::ftbPrivatePackDataDownloadSuccessfully(FtbModpack pack)
+void FTBPage::ftbPrivatePackDataDownloadSuccessfully(PmpModpack pack)
 {
     privateListModel->addPack(pack);
 }
@@ -202,7 +202,7 @@ void FTBPage::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
         onPackSelectionChanged();
         return;
     }
-    FtbModpack selectedPack = publicFilterModel->data(now, Qt::UserRole).value<FtbModpack>();
+    PmpModpack selectedPack = publicFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
     onPackSelectionChanged(&selectedPack);
 }
 
@@ -213,7 +213,7 @@ void FTBPage::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev
         onPackSelectionChanged();
         return;
     }
-    FtbModpack selectedPack = thirdPartyFilterModel->data(now, Qt::UserRole).value<FtbModpack>();
+    PmpModpack selectedPack = thirdPartyFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
     onPackSelectionChanged(&selectedPack);
 }
 
@@ -224,11 +224,11 @@ void FTBPage::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex prev)
         onPackSelectionChanged();
         return;
     }
-    FtbModpack selectedPack = privateFilterModel->data(now, Qt::UserRole).value<FtbModpack>();
+    PmpModpack selectedPack = privateFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
     onPackSelectionChanged(&selectedPack);
 }
 
-void FTBPage::onPackSelectionChanged(FtbModpack* pack)
+void FTBPage::onPackSelectionChanged(PmpModpack* pack)
 {
     ui->versionSelectionBox->clear();
     if(pack)
@@ -311,7 +311,7 @@ void FTBPage::onTabChanged(int tab)
     QModelIndex idx = currentList->currentIndex();
     if(idx.isValid())
     {
-        auto pack = currentModel->data(idx, Qt::UserRole).value<FtbModpack>();
+        auto pack = currentModel->data(idx, Qt::UserRole).value<PmpModpack>();
         onPackSelectionChanged(&pack);
     }
     else
@@ -346,7 +346,7 @@ void FTBPage::onRemovePackClicked()
         return;
     }
     auto row = index.row();
-    FtbModpack pack = privateListModel->at(row);
+    PmpModpack pack = privateListModel->at(row);
     auto answer = QMessageBox::question(
         this,
         tr("Remove pack"),

@@ -4,7 +4,7 @@
 
 #include "net/URLConstants.h"
 
-void FtbPackFetchTask::fetch()
+void PmpPackFetchTask::fetch()
 {
     publicPacks.clear();
     thirdPartyPacks.clear();
@@ -19,14 +19,14 @@ void FtbPackFetchTask::fetch()
     qDebug() << "Downloading thirdparty version info from" << thirdPartyUrl.toString();
     netJob->addNetAction(Net::Download::makeByteArray(thirdPartyUrl, &thirdPartyModpacksXmlFileData));
 
-    QObject::connect(netJob, &NetJob::succeeded, this, &FtbPackFetchTask::fileDownloadFinished);
-    QObject::connect(netJob, &NetJob::failed, this, &FtbPackFetchTask::fileDownloadFailed);
+    QObject::connect(netJob, &NetJob::succeeded, this, &PmpPackFetchTask::fileDownloadFinished);
+    QObject::connect(netJob, &NetJob::failed, this, &PmpPackFetchTask::fileDownloadFailed);
 
     jobPtr.reset(netJob);
     netJob->start();
 }
 
-void FtbPackFetchTask::fetchPrivate(const QStringList & toFetch)
+void PmpPackFetchTask::fetchPrivate(const QStringList & toFetch)
 {
     QString privatePackBaseUrl = URLConstants::FTB_CDN_BASE_URL + "static/%1.xml";
 
@@ -38,9 +38,9 @@ void FtbPackFetchTask::fetchPrivate(const QStringList & toFetch)
 
         QObject::connect(job, &NetJob::succeeded, this, [this, job, data, packCode]
         {
-            FtbModpackList packs;
-            parseAndAddPacks(*data, FtbPackType::Private, packs);
-            foreach(FtbModpack currentPack, packs)
+            PmpModpackList packs;
+            parseAndAddPacks(*data, PmpPackType::Private, packs);
+            foreach(PmpModpack currentPack, packs)
             {
                 currentPack.packCode = packCode;
                 emit privateFileDownloadFinished(currentPack);
@@ -65,18 +65,18 @@ void FtbPackFetchTask::fetchPrivate(const QStringList & toFetch)
     }
 }
 
-void FtbPackFetchTask::fileDownloadFinished()
+void PmpPackFetchTask::fileDownloadFinished()
 {
     jobPtr.reset();
 
     QStringList failedLists;
 
-    if(!parseAndAddPacks(publicModpacksXmlFileData, FtbPackType::Public, publicPacks))
+    if(!parseAndAddPacks(publicModpacksXmlFileData, PmpPackType::Public, publicPacks))
     {
         failedLists.append(tr("Public Packs"));
     }
 
-    if(!parseAndAddPacks(thirdPartyModpacksXmlFileData, FtbPackType::ThirdParty, thirdPartyPacks))
+    if(!parseAndAddPacks(thirdPartyModpacksXmlFileData, PmpPackType::ThirdParty, thirdPartyPacks))
     {
         failedLists.append(tr("Third Party Packs"));
     }
@@ -91,7 +91,7 @@ void FtbPackFetchTask::fileDownloadFinished()
     }
 }
 
-bool FtbPackFetchTask::parseAndAddPacks(QByteArray &data, FtbPackType packType, FtbModpackList &list)
+bool PmpPackFetchTask::parseAndAddPacks(QByteArray &data, PmpPackType packType, PmpModpackList &list)
 {
     QDomDocument doc;
 
@@ -112,7 +112,7 @@ bool FtbPackFetchTask::parseAndAddPacks(QByteArray &data, FtbPackType packType, 
     {
         QDomElement element = nodes.at(i).toElement();
 
-        FtbModpack modpack;
+        PmpModpack modpack;
         modpack.name = element.attribute("name");
         modpack.currentVersion = element.attribute("version");
         modpack.mcVersion = element.attribute("mcVersion");
@@ -161,7 +161,7 @@ bool FtbPackFetchTask::parseAndAddPacks(QByteArray &data, FtbPackType packType, 
     return true;
 }
 
-void FtbPackFetchTask::fileDownloadFailed(QString reason)
+void PmpPackFetchTask::fileDownloadFailed(QString reason)
 {
     qWarning() << "Fetching FtbPacks failed:" << reason;
     emit failed(reason);

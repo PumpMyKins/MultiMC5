@@ -6,13 +6,13 @@
 #include <QObject>
 #include "PackHelpers.h"
 
-class MULTIMC_LOGIC_EXPORT FtbPackFetchTask : public QObject {
+class MULTIMC_LOGIC_EXPORT PmpPackFetchTask : public QObject {
 
     Q_OBJECT
 
 public:
-    FtbPackFetchTask() = default;
-    virtual ~FtbPackFetchTask() = default;
+    PmpPackFetchTask() = default;
+    virtual ~PmpPackFetchTask() = default;
 
     void fetch();
     void fetchPrivate(const QStringList &toFetch);
@@ -23,18 +23,18 @@ private:
     QByteArray publicModpacksXmlFileData;
     QByteArray thirdPartyModpacksXmlFileData;
 
-    bool parseAndAddPacks(QByteArray &data, FtbPackType packType, FtbModpackList &list);
-    FtbModpackList publicPacks;
-    FtbModpackList thirdPartyPacks;
+    bool parseAndAddPacks(QByteArray &data, PmpPackType packType, PmpModpackList &list);
+    PmpModpackList publicPacks;
+    PmpModpackList thirdPartyPacks;
 
 protected slots:
     void fileDownloadFinished();
     void fileDownloadFailed(QString reason);
 
 signals:
-    void finished(FtbModpackList publicPacks, FtbModpackList thirdPartyPacks);
+    void finished(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
     void failed(QString reason);
 
-    void privateFileDownloadFinished(FtbModpack modpack);
+    void privateFileDownloadFinished(PmpModpack modpack);
     void privateFileDownloadFailed(QString reason, QString packCode);
 };

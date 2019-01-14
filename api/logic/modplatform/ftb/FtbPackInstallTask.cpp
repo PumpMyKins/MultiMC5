@@ -11,7 +11,7 @@
 
 #include "net/URLConstants.h"
 
-FtbPackInstallTask::FtbPackInstallTask(FtbModpack pack, QString version)
+FtbPackInstallTask::FtbPackInstallTask(PmpModpack pack, QString version)
 {
     m_pack = pack;
     m_version = version;
@@ -32,7 +32,7 @@ void FtbPackInstallTask::downloadPack()
 
     entry->setStale(true);
     QString url;
-    if(m_pack.type == FtbPackType::Private)
+    if(m_pack.type == PmpPackType::Private)
     {
         url = QString(URLConstants::FTB_CDN_BASE_URL + "privatepacks/%1").arg(packoffset);
     }

@@ -8,13 +8,13 @@
 #include "meta/VersionList.h"
 #include "modplatform/ftb/PackHelpers.h"
 
-class MULTIMC_LOGIC_EXPORT FtbPackInstallTask : public InstanceTask
+class MULTIMC_LOGIC_EXPORT PmpPackInstallTask : public InstanceTask
 {
     Q_OBJECT
 
 public:
-    explicit FtbPackInstallTask(FtbModpack pack, QString version);
-    virtual ~FtbPackInstallTask(){}
+    explicit PmpPackInstallTask(PmpModpack pack, QString version);
+    virtual ~PmpPackInstallTask(){}
 
     bool abort() override;
 
@@ -43,6 +43,6 @@ private: /* data */
     NetJobPtr netJobContainer;
     QString archivePath;
 
-    FtbModpack m_pack;
+    PmpModpack m_pack;
     QString m_version;
 };

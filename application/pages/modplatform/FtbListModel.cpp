@@ -21,8 +21,8 @@ FtbFilterModel::FtbFilterModel(QObject *parent) : QSortFilterProxyModel(parent)
 
 bool FtbFilterModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    FtbModpack leftPack = sourceModel()->data(left, Qt::UserRole).value<FtbModpack>();
-    FtbModpack rightPack = sourceModel()->data(right, Qt::UserRole).value<FtbModpack>();
+    PmpModpack leftPack = sourceModel()->data(left, Qt::UserRole).value<PmpModpack>();
+    PmpModpack rightPack = sourceModel()->data(right, Qt::UserRole).value<PmpModpack>();
 
     if(currentSorting == Sorting::ByGameVersion) {
         Version lv(leftPack.mcVersion);
@@ -72,15 +72,15 @@ FtbListModel::~FtbListModel()
 {
 }
 
-QString FtbListModel::translatePackType(FtbPackType type) const
+QString FtbListModel::translatePackType(PmpPackType type) const
 {
     switch(type)
     {
-        case FtbPackType::Public:
+        case PmpPackType::Public:
             return tr("Public Modpack");
-        case FtbPackType::ThirdParty:
+        case PmpPackType::ThirdParty:
             return tr("Third Party Modpack");
-        case FtbPackType::Private:
+        case PmpPackType::Private:
             return tr("Private Modpack");
     }
     qWarning() << "Unknown FTB modpack type:" << int(type);
@@ -105,7 +105,7 @@ QVariant FtbListModel::data(const QModelIndex &index, int role) const
         return QString("INVALID INDEX %1").arg(pos);
     }
 
-    FtbModpack pack = modpacks.at(pos);
+    PmpModpack pack = modpacks.at(pos);
     if(role == Qt::DisplayRole)
     {
         return pack.name + "\n" + translatePackType(pack.type);
@@ -156,14 +156,14 @@ QVariant FtbListModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void FtbListModel::fill(FtbModpackList modpacks)
+void FtbListModel::fill(PmpModpackList modpacks)
 {
     beginResetModel();
     this->modpacks = modpacks;
     endResetModel();
 }
 
-void FtbListModel::addPack(FtbModpack modpack)
+void FtbListModel::addPack(PmpModpack modpack)
 {
     beginResetModel();
     this->modpacks.append(modpack);
@@ -177,7 +177,7 @@ void FtbListModel::clear()
     endResetModel();
 }
 
-FtbModpack FtbListModel::at(int row)
+PmpModpack FtbListModel::at(int row)
 {
     return modpacks.at(row);
 }

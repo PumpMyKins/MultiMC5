@@ -4,7 +4,7 @@
 
 #include "FileSystem.h"
 
-void FtbPrivatePackManager::load()
+void PmpPrivatePackManager::load()
 {
     try
     {
@@ -18,7 +18,7 @@ void FtbPrivatePackManager::load()
     }
 }
 
-void FtbPrivatePackManager::save() const
+void PmpPrivatePackManager::save() const
 {
     if(!dirty)
     {
