@@ -1,4 +1,4 @@
-#include "FtbListModel.h"
+#include "PmpListModel.h"
 #include "MultiMC.h"
 
 #include <MMCStrings.h>
