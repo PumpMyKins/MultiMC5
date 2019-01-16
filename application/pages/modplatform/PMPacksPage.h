@@ -34,9 +34,6 @@ class PMPacksPage;
 class PmpListModel;
 class PmpFilterModel;
 class NewInstanceDialog;
-class PmpPrivatePackListModel;
-class PmpPrivatePackFilterModel;
-class PmpPrivatePackManager;
 
 class PMPacksPage : public QWidget, public BasePage
 {
@@ -72,20 +69,14 @@ private slots:
     void pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
     void pmpPackDataDownloadFailed(QString reason);
 
-    void pmpPrivatePackDataDownloadSuccessfully(PmpModpack pack);
-    void pmpPrivatePackDataDownloadFailed(QString reason, QString packCode);
-
     void onSortingSelectionChanged(QString data);
     void onVersionSelectionItemChanged(QString data);
 
     void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
     void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);
-    void onPrivatePackSelectionChanged(QModelIndex first, QModelIndex second);
 
     void onTabChanged(int tab);
 
-    void onAddPackClicked();
-    void onRemovePackClicked();
 
 private:
     PmpFilterModel* currentModel = nullptr;
@@ -102,11 +93,7 @@ private:
     PmpListModel *thirdPartyModel = nullptr;
     PmpFilterModel *thirdPartyFilterModel = nullptr;
 
-    PmpListModel *privateListModel = nullptr;
-    PmpFilterModel *privateFilterModel = nullptr;
-
     unique_qobject_ptr<PmpPackFetchTask> pmpFetchTask;
-    std::unique_ptr<PmpPrivatePackManager> pmpPrivatePacks;
 
     NewInstanceDialog* dialog = nullptr;
 

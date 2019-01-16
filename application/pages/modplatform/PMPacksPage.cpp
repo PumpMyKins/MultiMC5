@@ -8,14 +8,12 @@
 #include "dialogs/NewInstanceDialog.h"
 #include "modplatform/pmp/PmpPackFetchTask.h"
 #include "modplatform/pmp/PmpPackInstallTask.h"
-#include "modplatform/pmp/PmpPrivatePackManager.h"
 #include "PmpListModel.h"
 
 PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
     : QWidget(parent), dialog(dialog), ui(new Ui::PMPacksPage)
 {
     pmpFetchTask.reset(new PmpPackFetchTask());
-    pmpPrivatePacks.reset(new PmpPrivatePackManager());
 
     ui->setupUi(this);
 
@@ -52,20 +50,6 @@ PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
         thirdPartyFilterModel->setSorting(publicFilterModel->getCurrentSorting());
     }
 
-    {
-        privateFilterModel = new PmpFilterModel(this);
-        privateListModel = new PmpListModel(this);
-        privateFilterModel->setSourceModel(privateListModel);
-
-        ui->privatePackList->setModel(privateFilterModel);
-        ui->privatePackList->setSortingEnabled(true);
-        ui->privatePackList->header()->hide();
-        ui->privatePackList->setIndentation(0);
-        ui->privatePackList->setIconSize(QSize(42, 42));
-
-        privateFilterModel->setSorting(publicFilterModel->getCurrentSorting());
-    }
-
     ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->versionSelectionBox->view()->parentWidget()->setMaximumHeight(300);
 
@@ -74,10 +58,6 @@ PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
 
     connect(ui->publicPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onPublicPackSelectionChanged);
     connect(ui->thirdPartyPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onThirdPartyPackSelectionChanged);
-    connect(ui->privatePackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onPrivatePackSelectionChanged);
-
-    connect(ui->addPackBtn, &QPushButton::pressed, this, &PMPacksPage::onAddPackClicked);
-    connect(ui->removePackBtn, &QPushButton::pressed, this, &PMPacksPage::onRemovePackClicked);
 
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &PMPacksPage::onTabChanged);
 
@@ -85,7 +65,6 @@ PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
 
     ui->publicPackList->selectionModel()->reset();
     ui->thirdPartyPackList->selectionModel()->reset();
-    ui->privatePackList->selectionModel()->reset();
 
     onTabChanged(ui->tabWidget->currentIndex());
 }
@@ -107,12 +86,7 @@ void PMPacksPage::openedImpl()
         connect(pmpFetchTask.get(), &PmpPackFetchTask::finished, this, &PMPacksPage::pmpPackDataDownloadSuccessfully);
         connect(pmpFetchTask.get(), &PmpPackFetchTask::failed, this, &PMPacksPage::pmpPackDataDownloadFailed);
 
-        connect(pmpFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFinished, this, &PMPacksPage::pmpPrivatePackDataDownloadSuccessfully);
-        connect(pmpFetchTask.get(), &PmpPackFetchTask::privateFileDownloadFailed, this, &PMPacksPage::pmpPrivatePackDataDownloadFailed);
-
         pmpFetchTask->fetch();
-        pmpPrivatePacks->load();
-        pmpFetchTask->fetchPrivate(pmpPrivatePacks->getCurrentPackCodes().toList());
         initialized = true;
     }
     suggestCurrent();
@@ -151,13 +125,6 @@ void PMPacksPage::suggestCurrent()
                     dialog->setSuggestedIconFromFile(logo, editedLogoName);
                 });
             }
-            else if (selected.type == PmpPackType::Private)
-            {
-                privateListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
-                {
-                    dialog->setSuggestedIconFromFile(logo, editedLogoName);
-                });
-            }
         }
         else
         {
@@ -175,24 +142,6 @@ void PMPacksPage::pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, Pm
 void PMPacksPage::pmpPackDataDownloadFailed(QString reason)
 {
     //TODO: Display the error
-}
-
-void PMPacksPage::pmpPrivatePackDataDownloadSuccessfully(PmpModpack pack)
-{
-    privateListModel->addPack(pack);
-}
-
-void PMPacksPage::pmpPrivatePackDataDownloadFailed(QString reason, QString packCode)
-{
-    auto reply = QMessageBox::question(
-        this,
-        tr("FTB private packs"),
-        tr("Failed to download pack information for code %1.\nShould it be removed now?").arg(packCode)
-    );
-    if(reply == QMessageBox::Yes)
-    {
-        pmpPrivatePacks->remove(packCode);
-    }
 }
 
 void PMPacksPage::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev)
@@ -214,17 +163,6 @@ void PMPacksPage::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex 
         return;
     }
     PmpModpack selectedPack = thirdPartyFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
-    onPackSelectionChanged(&selectedPack);
-}
-
-void PMPacksPage::onPrivatePackSelectionChanged(QModelIndex now, QModelIndex prev)
-{
-    if(!now.isValid())
-    {
-        onPackSelectionChanged();
-        return;
-    }
-    PmpModpack selectedPack = privateFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
     onPackSelectionChanged(&selectedPack);
 }
 
@@ -283,7 +221,6 @@ void PMPacksPage::onSortingSelectionChanged(QString data)
     PmpFilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
     publicFilterModel->setSorting(toSet);
     thirdPartyFilterModel->setSorting(toSet);
-    privateFilterModel->setSorting(toSet);
 }
 
 void PMPacksPage::onTabChanged(int tab)
@@ -293,12 +230,6 @@ void PMPacksPage::onTabChanged(int tab)
         currentModel = thirdPartyFilterModel;
         currentList = ui->thirdPartyPackList;
         currentModpackInfo = ui->thirdPartyPackDescription;
-    }
-    else if(tab == 2)
-    {
-        currentModel = privateFilterModel;
-        currentList = ui->privatePackList;
-        currentModpackInfo = ui->privatePackDescription;
     }
     else
     {
@@ -318,47 +249,4 @@ void PMPacksPage::onTabChanged(int tab)
     {
         onPackSelectionChanged();
     }
-}
-
-void PMPacksPage::onAddPackClicked()
-{
-    bool ok;
-    QString text = QInputDialog::getText(
-        this,
-        tr("Add FTB pack"),
-        tr("Enter pack code:"),
-        QLineEdit::Normal,
-        QString(),
-        &ok
-    );
-    if(ok && !text.isEmpty())
-    {
-        pmpPrivatePacks->add(text);
-        pmpFetchTask->fetchPrivate({text});
-    }
-}
-
-void PMPacksPage::onRemovePackClicked()
-{
-    auto index = ui->privatePackList->currentIndex();
-    if(!index.isValid())
-    {
-        return;
-    }
-    auto row = index.row();
-    PmpModpack pack = privateListModel->at(row);
-    auto answer = QMessageBox::question(
-        this,
-        tr("Remove pack"),
-        tr("Are you sure you want to remove pack %1?").arg(pack.name),
-        QMessageBox::Yes | QMessageBox::No
-    );
-    if(answer != QMessageBox::Yes)
-    {
-        return;
-    }
-
-    pmpPrivatePacks->remove(pack.packCode);
-    privateListModel->remove(row);
-    onPackSelectionChanged();
 }
