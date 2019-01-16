@@ -15,7 +15,6 @@ public:
     virtual ~PmpPackFetchTask() = default;
 
     void fetch();
-    void fetchPrivate(const QStringList &toFetch);
 
 private:
     NetJobPtr jobPtr;
@@ -34,7 +33,4 @@ protected slots:
 signals:
     void finished(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
     void failed(QString reason);
-
-    void privateFileDownloadFinished(PmpModpack modpack);
-    void privateFileDownloadFailed(QString reason, QString packCode);
 };

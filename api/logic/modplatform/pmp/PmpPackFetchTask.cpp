@@ -11,11 +11,11 @@ void PmpPackFetchTask::fetch()
 
     NetJob *netJob = new NetJob("PmpModpackFetch");
 
-    QUrl publicPacksUrl = QUrl(URLConstants::FTB_CDN_BASE_URL + "static/modpacks.xml");
+    QUrl publicPacksUrl = QUrl(URLConstants::FTB_CDN_BASE_URL + "public/modpacks.xml");
     qDebug() << "Downloading public version info from" << publicPacksUrl.toString();
     netJob->addNetAction(Net::Download::makeByteArray(publicPacksUrl, &publicModpacksXmlFileData));
 
-    QUrl thirdPartyUrl = QUrl(URLConstants::FTB_CDN_BASE_URL + "static/thirdparty.xml");
+    QUrl thirdPartyUrl = QUrl(URLConstants::FTB_CDN_BASE_URL + "beta/modpacks.xml");
     qDebug() << "Downloading thirdparty version info from" << thirdPartyUrl.toString();
     netJob->addNetAction(Net::Download::makeByteArray(thirdPartyUrl, &thirdPartyModpacksXmlFileData));
 
@@ -26,7 +26,7 @@ void PmpPackFetchTask::fetch()
     netJob->start();
 }
 
-void PmpPackFetchTask::fetchPrivate(const QStringList & toFetch)
+/*void PmpPackFetchTask::fetchPrivate(const QStringList & toFetch)
 {
     QString privatePackBaseUrl = URLConstants::FTB_CDN_BASE_URL + "static/%1.xml";
 
@@ -64,7 +64,7 @@ void PmpPackFetchTask::fetchPrivate(const QStringList & toFetch)
         job->start();
     }
 }
-
+*/
 void PmpPackFetchTask::fileDownloadFinished()
 {
     jobPtr.reset();
@@ -108,6 +108,7 @@ bool PmpPackFetchTask::parseAndAddPacks(QByteArray &data, PmpPackType packType, 
     }
 
     QDomNodeList nodes = doc.elementsByTagName("modpack");
+
     for(int i = 0; i < nodes.length(); i++)
     {
         QDomElement element = nodes.at(i).toElement();
