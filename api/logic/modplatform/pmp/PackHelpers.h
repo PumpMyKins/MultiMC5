@@ -9,8 +9,7 @@
 enum class PmpPackType
 {
     Public,
-    ThirdParty,
-    Private
+    Beta
 };
 
 struct PmpModpack
