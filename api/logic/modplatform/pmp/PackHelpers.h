@@ -18,7 +18,6 @@ struct PmpModpack
     QString name;
     QString description;
     QString author;
-    QStringList oldVersions;
     QString currentVersion;
     QString mcVersion;
     QString mods;
