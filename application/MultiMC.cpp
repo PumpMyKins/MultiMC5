@@ -132,10 +132,10 @@ MultiMC::MultiMC(int &argc, char **argv) : QApplication(argc, argv)
         consoleAttached = true;
     }
 #endif
-    setOrganizationName("MultiMC");
-    setOrganizationDomain("multimc.org");
-    setApplicationName("MultiMC5");
-    setApplicationDisplayName("MultiMC 5");
+    setOrganizationName("PumpMyKins");
+    setOrganizationDomain("pumpmykins.eu");
+    setApplicationName("PumpMyMultiMC");
+    setApplicationDisplayName("PumpMyMultiMC");
     setApplicationVersion(BuildConfig.printableVersionString());
 
     startTime = QDateTime::currentDateTime();
