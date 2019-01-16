@@ -174,21 +174,8 @@ void PMPacksPage::onPackSelectionChanged(PmpModpack* pack)
         currentModpackInfo->setHtml("Pack by <b>" + pack->author + "</b>" +
                                     "<br>Minecraft " + pack->mcVersion + "<br>" + "<br>" + pack->description + "<ul><li>" + pack->mods.replace(";", "</li><li>")
                                     + "</li></ul>");
-        bool currentAdded = false;
 
-        for(int i = 0; i < pack->oldVersions.size(); i++)
-        {
-            if(pack->currentVersion == pack->oldVersions.at(i))
-            {
-                currentAdded = true;
-            }
-            ui->versionSelectionBox->addItem(pack->oldVersions.at(i));
-        }
-
-        if(!currentAdded)
-        {
-            ui->versionSelectionBox->addItem(pack->currentVersion);
-        }
+        ui->versionSelectionBox->addItem(pack->currentVersion);
         selected = *pack;
     }
     else

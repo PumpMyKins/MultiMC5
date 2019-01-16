@@ -118,36 +118,21 @@ bool PmpPackFetchTask::parseAndAddPacks(QByteArray &data, PmpPackType packType, 
         modpack.currentVersion = element.attribute("version");
         modpack.mcVersion = element.attribute("mcVersion");
         modpack.description = element.attribute("description");
-        modpack.mods = element.attribute("mods");
+        modpack.mods = "";
         modpack.logo = element.attribute("logo");
-        modpack.oldVersions = element.attribute("oldVersions").split(";");
         modpack.broken = false;
         modpack.bugged = false;
 
-        //remove empty if the xml is bugged
-        for(QString curr : modpack.oldVersions)
+        if(!modpack.currentVersion.isNull() && !modpack.currentVersion.isEmpty())
         {
-            if(curr.isNull() || curr.isEmpty())
-            {
-                modpack.oldVersions.removeAll(curr);
-                modpack.bugged = true;
-                qWarning() << "Removed some empty versions from" << modpack.name;
-            }
-        }
+             qWarning() << "Added current version to oldVersions because oldVersions was empty! (" + modpack.name + ")";
+         }
+         else
+         {
+             modpack.broken = true;
+             qWarning() << "Broken pack:" << modpack.name << " => No valid version!";
+         }
 
-        if(modpack.oldVersions.size() < 1)
-        {
-            if(!modpack.currentVersion.isNull() && !modpack.currentVersion.isEmpty())
-            {
-                modpack.oldVersions.append(modpack.currentVersion);
-                qWarning() << "Added current version to oldVersions because oldVersions was empty! (" + modpack.name + ")";
-            }
-            else
-            {
-                modpack.broken = true;
-                qWarning() << "Broken pack:" << modpack.name << " => No valid version!";
-            }
-        }
 
         modpack.author = element.attribute("author");
 
