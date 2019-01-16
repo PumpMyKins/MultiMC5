@@ -76,7 +76,7 @@ void PmpPackFetchTask::fileDownloadFinished()
         failedLists.append(tr("Public Packs"));
     }
 
-    if(!parseAndAddPacks(thirdPartyModpacksXmlFileData, PmpPackType::ThirdParty, thirdPartyPacks))
+    if(!parseAndAddPacks(thirdPartyModpacksXmlFileData, PmpPackType::Beta, thirdPartyPacks))
     {
         failedLists.append(tr("Third Party Packs"));
     }

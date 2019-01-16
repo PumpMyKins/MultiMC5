@@ -78,10 +78,8 @@ QString PmpListModel::translatePackType(PmpPackType type) const
     {
         case PmpPackType::Public:
             return tr("Public Modpack");
-        case PmpPackType::ThirdParty:
-            return tr("Third Party Modpack");
-        case PmpPackType::Private:
-            return tr("Private Modpack");
+        case PmpPackType::Beta:
+            return tr("Beta Modpack");
     }
     qWarning() << "Unknown FTB modpack type:" << int(type);
     return QString();
@@ -216,7 +214,7 @@ void PmpListModel::requestLogo(QString file)
 
     MetaEntryPtr entry = ENV.metacache()->resolveEntry("FTBPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
     NetJob *job = new NetJob(QString("FTB Icon Download for %1").arg(file));
-    job->addNetAction(Net::Download::makeCached(QUrl(QString(URLConstants::FTB_CDN_BASE_URL + "static/%1").arg(file)), entry));
+    job->addNetAction(Net::Download::makeCached(QUrl(QString("%1").arg(file)), entry));
 
     auto fullPath = entry->getFullPath();
     QObject::connect(job, &NetJob::finished, this, [this, file, fullPath]
