@@ -37,17 +37,17 @@ PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
     }
 
     {
-        thirdPartyFilterModel = new PmpFilterModel(this);
-        thirdPartyModel = new PmpListModel(this);
-        thirdPartyFilterModel->setSourceModel(thirdPartyModel);
+        betaFilterModel = new PmpFilterModel(this);
+        betaListModel = new PmpListModel(this);
+        betaFilterModel->setSourceModel(betaListModel);
 
-        ui->thirdPartyPackList->setModel(thirdPartyFilterModel);
+        ui->thirdPartyPackList->setModel(betaListModel);
         ui->thirdPartyPackList->setSortingEnabled(true);
         ui->thirdPartyPackList->header()->hide();
         ui->thirdPartyPackList->setIndentation(0);
         ui->thirdPartyPackList->setIconSize(QSize(42, 42));
 
-        thirdPartyFilterModel->setSorting(publicFilterModel->getCurrentSorting());
+        betaFilterModel->setSorting(publicFilterModel->getCurrentSorting());
     }
 
     ui->versionSelectionBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -57,7 +57,7 @@ PMPacksPage::PMPacksPage(NewInstanceDialog* dialog, QWidget *parent)
     connect(ui->versionSelectionBox, &QComboBox::currentTextChanged, this, &PMPacksPage::onVersionSelectionItemChanged);
 
     connect(ui->publicPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onPublicPackSelectionChanged);
-    connect(ui->thirdPartyPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onThirdPartyPackSelectionChanged);
+    connect(ui->thirdPartyPackList->selectionModel(), &QItemSelectionModel::currentChanged, this, &PMPacksPage::onBetaPackSelectionChanged);
 
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &PMPacksPage::onTabChanged);
 
@@ -118,9 +118,9 @@ void PMPacksPage::suggestCurrent()
                     dialog->setSuggestedIconFromFile(logo, editedLogoName);
                 });
             }
-            else if (selected.type == PmpPackType::ThirdParty)
+            else if (selected.type == PmpPackType::Beta)
             {
-                thirdPartyModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
+                betaListModel->getLogo(selected.logo, [this, editedLogoName](QString logo)
                 {
                     dialog->setSuggestedIconFromFile(logo, editedLogoName);
                 });
@@ -133,10 +133,10 @@ void PMPacksPage::suggestCurrent()
     }
 }
 
-void PMPacksPage::pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks)
+void PMPacksPage::pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList betaPacks)
 {
     publicListModel->fill(publicPacks);
-    thirdPartyModel->fill(thirdPartyPacks);
+    betaListModel->fill(betaPacks);
 }
 
 void PMPacksPage::pmpPackDataDownloadFailed(QString reason)
@@ -155,14 +155,14 @@ void PMPacksPage::onPublicPackSelectionChanged(QModelIndex now, QModelIndex prev
     onPackSelectionChanged(&selectedPack);
 }
 
-void PMPacksPage::onThirdPartyPackSelectionChanged(QModelIndex now, QModelIndex prev)
+void PMPacksPage::onBetaPackSelectionChanged(QModelIndex now, QModelIndex prev)
 {
     if(!now.isValid())
     {
         onPackSelectionChanged();
         return;
     }
-    PmpModpack selectedPack = thirdPartyFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
+    PmpModpack selectedPack = betaFilterModel->data(now, Qt::UserRole).value<PmpModpack>();
     onPackSelectionChanged(&selectedPack);
 }
 
@@ -207,14 +207,14 @@ void PMPacksPage::onSortingSelectionChanged(QString data)
 {
     PmpFilterModel::Sorting toSet = publicFilterModel->getAvailableSortings().value(data);
     publicFilterModel->setSorting(toSet);
-    thirdPartyFilterModel->setSorting(toSet);
+    betaFilterModel->setSorting(toSet);
 }
 
 void PMPacksPage::onTabChanged(int tab)
 {
     if(tab == 1)
     {
-        currentModel = thirdPartyFilterModel;
+        currentModel = betaFilterModel;
         currentList = ui->thirdPartyPackList;
         currentModpackInfo = ui->thirdPartyPackDescription;
     }

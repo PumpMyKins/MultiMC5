@@ -31,15 +31,8 @@ void PmpPackInstallTask::downloadPack()
     NetJob *job = new NetJob("Download FTB Pack");
 
     entry->setStale(true);
-    QString url;
-    if(m_pack.type == PmpPackType::Private)
-    {
-        url = QString(URLConstants::FTB_CDN_BASE_URL + "privatepacks/%1").arg(packoffset);
-    }
-    else
-    {
-        url = QString(URLConstants::FTB_CDN_BASE_URL + "modpacks/%1").arg(packoffset);
-    }
+    QString url = QString(m_pack.file);
+
     job->addNetAction(Net::Download::makeCached(url, entry));
     archivePath = entry->getFullPath();
 

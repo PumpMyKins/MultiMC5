@@ -66,14 +66,14 @@ private:
     void onPackSelectionChanged(PmpModpack *pack = nullptr);
 
 private slots:
-    void pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList thirdPartyPacks);
+    void pmpPackDataDownloadSuccessfully(PmpModpackList publicPacks, PmpModpackList betaPacks);
     void pmpPackDataDownloadFailed(QString reason);
 
     void onSortingSelectionChanged(QString data);
     void onVersionSelectionItemChanged(QString data);
 
     void onPublicPackSelectionChanged(QModelIndex first, QModelIndex second);
-    void onThirdPartyPackSelectionChanged(QModelIndex first, QModelIndex second);
+    void onBetaPackSelectionChanged(QModelIndex first, QModelIndex second);
 
     void onTabChanged(int tab);
 
@@ -90,8 +90,8 @@ private:
     PmpListModel* publicListModel = nullptr;
     PmpFilterModel* publicFilterModel = nullptr;
 
-    PmpListModel *thirdPartyModel = nullptr;
-    PmpFilterModel *thirdPartyFilterModel = nullptr;
+    PmpListModel *betaListModel = nullptr;
+    PmpFilterModel *betaFilterModel = nullptr;
 
     unique_qobject_ptr<PmpPackFetchTask> pmpFetchTask;
 
