@@ -375,7 +375,7 @@ public:
         actionPMK = TranslatedAction(MainWindow);
         actionPMK->setObjectName(QStringLiteral("actionPMK"));
         actionPMK->setCheckable(true);
-        actionPMK->setIcon(MMC->getThemedIcon("cat"));
+        actionPMK->setIcon(MMC->getThemedIcon("pmk"));
         actionPMK.setTextId(QT_TRANSLATE_NOOP("MainWindow", "PumpKins"));
         actionPMK.setTooltipId(QT_TRANSLATE_NOOP("MainWindow", "Do you want a pumpmykins ?"));
         actionPMK->setPriority(QAction::LowPriority);
