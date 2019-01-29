@@ -48,7 +48,7 @@ private:
     PmpLogoMap m_logoMap;
     QMap<QString, LogoCallback> waitingCallbacks;
 
-    void requestLogo(QString file);
+    void requestLogo(QString pack);
     QString translatePackType(PmpPackType type) const;
 
 

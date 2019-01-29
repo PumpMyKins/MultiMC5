@@ -213,8 +213,8 @@ void PmpListModel::requestLogo(QString file)
     }
 
     MetaEntryPtr entry = ENV.metacache()->resolveEntry("FTBPacks", QString("logos/%1").arg(file.section(".", 0, 0)));
-    NetJob *job = new NetJob(QString("FTB Icon Download for %1").arg(file));
-    job->addNetAction(Net::Download::makeCached(QUrl(QString("%1").arg(file)), entry));
+    NetJob *job = new NetJob(QString("PMP Icon Download for %1").arg(file));
+    job->addNetAction(Net::Download::makeCached(QUrl(QString("http://resources.pumpmykins.eu/pmmultimc_v1/modpacks/logo/%1").arg(file)), entry));
 
     auto fullPath = entry->getFullPath();
     QObject::connect(job, &NetJob::finished, this, [this, file, fullPath]
