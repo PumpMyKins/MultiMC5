@@ -78,7 +78,7 @@ void PmpPackFetchTask::fileDownloadFinished()
 
     if(!parseAndAddPacks(thirdPartyModpacksXmlFileData, PmpPackType::Beta, thirdPartyPacks))
     {
-        failedLists.append(tr("Third Party Packs"));
+        failedLists.append(tr("Beta Packs"));
     }
 
     if(failedLists.size() > 0)
